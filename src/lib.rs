@@ -101,9 +101,9 @@ pub struct Device {}
 
 impl Device {
     pub fn run(
-        mut self,
-        available_ring: SharedAvailableRing,
-        used_ring: SharedUsedRing,
+        self,
+        _available_ring: SharedAvailableRing,
+        _used_ring: SharedUsedRing,
     ) -> Result<()> {
         todo!()
     }
@@ -113,19 +113,19 @@ pub fn run() -> Result<()> {
     // define our structures
     // the table is local state to the driver, while the rings are shared between the driver and the
     // device. Therefore, we'll add standard synchronization on the rings for now.
-    let mut table: DescriptorTable = DescriptorTable::default();
+    let _table: DescriptorTable = DescriptorTable::default();
     let available_ring = Arc::new(Mutex::new([0; RING_SIZE]));
     let used_ring = Arc::new(Mutex::new([0; RING_SIZE]));
 
     // the indexes are used for us to keep track of the next slot in the available ring to
-    let mut available_index = 0;
-    let mut used_index = 0;
+    let _available_index = 0;
+    let _used_index = 0;
 
     // we also define our tracking for our free list, because the descriptor table already encodes
     // the chain structure through the `next` field, we just need a head
 
     // now we can spawn our mock device that grabs from the available_ring
-    let handle = std::thread::spawn(move || {
+    let _handle = std::thread::spawn(move || {
         let device = Device {};
         let a = available_ring.clone();
         let u = used_ring.clone();
