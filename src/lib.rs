@@ -19,7 +19,9 @@ pub struct Descriptor {
 
 #[derive(Debug)]
 pub struct DescriptorTable {
-    entries: [Descriptor; DESC_TABLE_SIZE],
+    /// The entries need to be visible to both the driver and the device. The chains just provide
+    /// the descriptor indexes, but the actual descriptors are stored in the table.
+    entries: Arc<Mutex<[Descriptor; DESC_TABLE_SIZE]>>,
     free_head_index: Option<usize>,
     total_available: usize,
 }
@@ -39,8 +41,11 @@ impl Default for DescriptorTable {
         if let Some(x) = entries.iter_mut().last() {
             x.next = None
         }
+
+        let shared_entries = Arc::new(Mutex::new(entries));
+
         Self {
-            entries,
+            entries: shared_entries,
             free_head_index: Some(0),
             total_available: DESC_TABLE_SIZE,
         }
@@ -54,17 +59,17 @@ impl DescriptorTable {
     }
 
     /// get a chain of descriptors for some IO request
-    /// TODO: I think getting a set of descriptors should return a mutable reference to those descriptors?
-    pub fn get_chain(&mut self, num_descriptors: usize) -> Result<Vec<u64>> {
+    /// TODO: I think getting a set of descriptors should return a mutable reference to those descriptors rather than read a copy.
+    /// Given that the lifetime of the returned slice is not known but tied to our descriptor table,
+    /// it's likely we'll need GATs.
+    pub fn get_chain(&mut self, num_descriptors: usize) -> Result<Vec<usize>> {
         // if the number of needed descriptors is larger than the table size, we'll never be able to satisfy it
         if num_descriptors > DESC_TABLE_SIZE {
-            return Err(Error::from(ErrorRepr::RequestTooLarge(
-                num_descriptors as u64,
-            )));
+            return Err(Error::from(ErrorRepr::RequestTooLarge(num_descriptors)));
         }
 
         // if the number of available descriptors is too small, we should probably block on some
-        // sort of condvar? For now, we just panic.
+        // sort of condvar? Something to check the spec on. For now, we just panic.
         // FIXME: Don't panic :)
         if num_descriptors > self.total_available {
             unimplemented!("Cannot handle requests that are larger than the system just yet");
@@ -73,10 +78,16 @@ impl DescriptorTable {
         else {
             // get the chain by walking the free list until we have enough descriptors
             let mut current = self.free_head_index;
-            let mut chain: Vec<u64> = Vec::new();
+            let mut chain: Vec<usize> = Vec::new();
+
+            // first we lock
+            // freed at the end of the scope
+            // NOTE: I recognize this is crude, it's meant to be as simple as possible
+            let guard = self.entries.lock().unwrap();
+
             for _ in 0..num_descriptors {
-                chain.push(current.unwrap() as u64);
-                current = self.entries[current.unwrap()].next;
+                chain.push(current.unwrap());
+                current = guard[current.unwrap()].next;
             }
 
             // update the new current head position
@@ -89,6 +100,8 @@ impl DescriptorTable {
         }
     }
 }
+
+pub type SharedDescriptorTable = Arc<Mutex<[Descriptor; DESC_TABLE_SIZE]>>;
 
 pub type AvailableRing = [usize; RING_SIZE];
 
@@ -105,6 +118,7 @@ impl Device {
         self,
         _available_ring: SharedAvailableRing,
         _used_ring: SharedUsedRing,
+        _desc_table: SharedDescriptorTable,
     ) -> Result<()> {
         todo!()
     }
@@ -114,7 +128,7 @@ pub fn run() -> Result<()> {
     // define our structures
     // the table is local state to the driver, while the rings are shared between the driver and the
     // device. Therefore, we'll add standard synchronization on the rings for now.
-    let _table: DescriptorTable = DescriptorTable::default();
+    let table: DescriptorTable = DescriptorTable::default();
     let available_ring = Arc::new(Mutex::new([0; RING_SIZE]));
     let used_ring = Arc::new(Mutex::new([0; RING_SIZE]));
 
@@ -130,7 +144,8 @@ pub fn run() -> Result<()> {
         let device = Device {};
         let a = available_ring.clone();
         let u = used_ring.clone();
-        device.run(a, u)
+        let table = table.entries.clone();
+        device.run(a, u, table)
     });
 
     // now we can handle our IO requests and such

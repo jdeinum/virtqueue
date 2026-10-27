@@ -19,7 +19,7 @@ pub enum ErrorKind {
 #[derive(Error, Debug)]
 pub(crate) enum ErrorRepr {
     #[error("Request too large: {0}, not enough descriptors")]
-    RequestTooLarge(u64),
+    RequestTooLarge(usize),
 
     #[error("Unexpected error")]
     UnexpectedError(#[from] anyhow::Error),
