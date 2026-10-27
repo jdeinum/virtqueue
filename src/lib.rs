@@ -36,8 +36,9 @@ impl Default for DescriptorTable {
             .unwrap();
 
         // the last entry should have its next field cleared
-        entries.iter_mut().last().map(|x| x.next = None);
-
+        if let Some(x) = entries.iter_mut().last() {
+            x.next = None
+        }
         Self {
             entries,
             free_head_index: Some(0),
@@ -133,7 +134,7 @@ pub fn run() -> Result<()> {
     });
 
     // now we can handle our IO requests and such
-    loop {}
+    todo!()
 }
 
 #[cfg(test)]
