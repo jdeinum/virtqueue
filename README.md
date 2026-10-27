@@ -14,5 +14,5 @@ be building the harness for already exists under
 [rustvmm](https://github.com/rust-vmm/rust-vmm/tree/main/vm-virtio). My goal is
 to write enough of a virtqueue according to the
 [spec](https://docs.oasis-open.org/virtio/virtio/v1.1/csprd01/virtio-v1.1-csprd01.html#x1-90002)
-that I convert the existing rustvmm implementation to use [loom](<>) primitives to
-check for concurrency issues, followed by writing a DST harness for the actual device.
+that I feel convertable converting the existing rustvmm implementation to use [loom](<>) primitives to
+check for concurrency issues. Once this is done, I'll write a DST harness for the rustvmm virtio.
