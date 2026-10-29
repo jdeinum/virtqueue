@@ -1,41 +1,36 @@
-// use crate::{
-//     descriptor_table::{DescriptorTable, SharedDescriptorTable},
-//     device::Device,
-//     driver::Driver,
-//     error::Result,
-//     rings::{AvailableRing, SharedAvailableRing, SharedUsedRing, UsedRing},
-// };
-// use std::sync::{Arc, Condvar, Mutex};
-//
-// pub fn _run() -> Result<()> {
-//     // define our structures
-//     // the table is local state to the driver, while the rings are shared between the driver and the
-//     // device. Therefore, we'll add standard synchronization on the rings for now.
-//     // TODO: Need to ensure the order that we grab the locks in is the same if we ever require more
-//     // than one lock to be held to avoid deadlock.
-//     let table: SharedDescriptorTable = Arc::new(Mutex::new(DescriptorTable::default()));
-//     let available_ring: SharedAvailableRing = Arc::new(Mutex::new(AvailableRing::default()));
-//     let used_ring: SharedUsedRing = Arc::new(Mutex::new(UsedRing::default()));
-//     let common_state: SharedCommonState = Arc::new(Mutex::new(CommonState::default()));
-//     let driver_condvar = Arc::new(Condvar::new());
-//
-//     // now we can spawn our mock device that grabs from the available_ring
-//     let handle = std::thread::spawn(move || {
-//         let device = Device::new(
-//             table.clone(),
-//             available_ring.clone(),
-//             used_ring.clone(),
-//             0,
-//             0,
-//             driver_condvar.clone(),
-//             common_state.clone(),
-//         );
-//         device.run()
-//     });
-//
-//     // now we can pretend to be the driver
-//     let driver = Driver::new(table, available_ring, used_ring, common_state);
-//     driver.
-//
-//
-// }
+use crate::error::Result;
+use crate::{device::Device, driver::Driver, virtqueue::VirtQueue};
+use anyhow::{Context, anyhow};
+use std::sync::{Arc, Mutex};
+
+/// Spins up a driver and a device connected by a transmit and receive virtqueue, and runs both
+/// until they stop.
+///
+/// # Errors
+///
+/// Returns an error if the driver or device fails, or if the driver thread panics.
+pub fn run() -> Result<()> {
+    // create our virtqueues and signaling mechanisms
+    // NOTE: TX/RX are from the perspective of the driver
+    let transmit_virtqueue = Arc::new(Mutex::new(VirtQueue::default()));
+    let receive_virtqueue = Arc::new(Mutex::new(VirtQueue::default()));
+
+    let (driver_tx, driver_rx) = std::sync::mpsc::channel();
+    let (device_tx, device_rx) = std::sync::mpsc::channel();
+
+    // spawn our driver
+    let tx = transmit_virtqueue.clone();
+    let rx = receive_virtqueue.clone();
+    let driver_handle = std::thread::spawn(move || {
+        let driver: Driver = Driver::new(tx, rx, device_tx, driver_rx);
+        driver.run().context("run driver")
+    });
+
+    // now we can create our device
+    let device: Device = Device::new(receive_virtqueue, transmit_virtqueue, device_rx, driver_tx);
+    device.run().context("run device")?;
+    driver_handle
+        .join()
+        .map_err(|_| anyhow!("driver thread panicked"))??;
+    Ok(())
+}

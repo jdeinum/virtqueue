@@ -1,5 +1,5 @@
 //! This module contains the error types for the virtio implementation. I use the same approach as
-//! stdio implementations purely for the sake of SemVer management.
+//! `std::io` implementations purely for the sake of semver management.
 
 use std::fmt::{Debug, Display};
 use std::sync::Arc;
@@ -17,7 +17,7 @@ pub enum ErrorKind {
 /// The representation of our error. This is private and callers can not access it, the only use if
 /// printing it.
 #[derive(Error, Debug)]
-pub(crate) enum ErrorRepr {
+pub enum ErrorRepr {
     #[error("Request too large: {0}, not enough descriptors")]
     RequestTooLarge(usize),
 
@@ -25,7 +25,7 @@ pub(crate) enum ErrorRepr {
     UnexpectedError(#[from] anyhow::Error),
 }
 
-/// Our virtio queue error. Because ErrorRepr is sized, this means our errors are always 8 bytes,
+/// Our virtio queue error. Because `ErrorRepr` is sized, this means our errors are always 8 bytes,
 /// and the Arc allows cheap sharing.
 #[derive(Clone)]
 pub struct Error(Arc<ErrorRepr>);

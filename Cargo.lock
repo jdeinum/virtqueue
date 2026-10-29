@@ -44,17 +44,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "descriptor"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "rand",
- "thiserror",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "getrandom"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -316,6 +305,17 @@ name = "valuable"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba73ea9cf16a25df0c8caa16c51acb937d5712a8429db78a3ee29d5dcacd3a65"
+
+[[package]]
+name = "virtio"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "rand",
+ "thiserror",
+ "tracing",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "windows-link"

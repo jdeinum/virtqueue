@@ -1,5 +1,5 @@
 [package]
-name = "descriptor"
+name = "virtio"
 version = "0.1.0"
 edition = "2024"
 
@@ -12,10 +12,11 @@ tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 
 
 # Aggressive lints so my code is less bad 
-[workspace.lints.clippy]
+[lints.clippy]
 all = { level = "deny", priority = -1 }
 pedantic = { level = "deny", priority = -1 }
 nursery = { level = "deny", priority = -1 }
 cargo = { level = "deny", priority = -1 }
 multiple_crate_versions = "allow"
 cargo_common_metadata = "allow"
+must_use_candidate = "allow"

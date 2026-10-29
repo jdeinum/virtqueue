@@ -1,13 +1,11 @@
 use crate::descriptor::Descriptor;
-use crate::error::{Error, ErrorRepr, Result};
+use std::ops::{Deref, DerefMut};
 use std::sync::{Arc, Mutex};
 
-pub const DESC_TABLE_SIZE: usize = 10;
+pub const DESC_TABLE_SIZE: usize = crate::rings::RING_SIZE;
 
 #[derive(Default, Debug)]
 pub struct DescriptorTable([Descriptor; DESC_TABLE_SIZE]);
-
-use std::ops::{Deref, DerefMut};
 
 impl Deref for DescriptorTable {
     type Target = [Descriptor];
