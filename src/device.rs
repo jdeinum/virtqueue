@@ -120,6 +120,10 @@ impl Device {
     /// Run the device side of the loop, in this case, we have a few responsibilities:
     /// 1. If we have messages to send, we put them in the transmit virtqueue
     /// 2. Check the receive virtqueue to see if there are any messages for us
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when sending a message to the driver fails
     pub fn run(mut self) -> Result<()> {
         loop {
             self.step().context("device step")?;
@@ -128,6 +132,10 @@ impl Device {
     }
 
     /// Runs a single pass of the device loop without blocking, see [`Device::run`] for the sequence
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when sending a message to the driver fails
     pub fn step(&mut self) -> Result<()> {
         // we'll start by checking if we have data to send to the driver
         // normally this would be coming externally, but in this case, we'll generate it through

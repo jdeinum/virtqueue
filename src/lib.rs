@@ -28,7 +28,7 @@
 //! descriptor being a read while the second is writable and allows the device to send its response.
 //!
 //! Also, descriptors hold guest physical addresses, unless you are using a virtual IOMMU
-//! (negotiated through VIRTIO_F_ACCESS_PLATFORM), in which case the descriptors contain virtual
+//! (negotiated through `VIRTIO_F_ACCESS_PLATFORM`), in which case the descriptors contain virtual
 //! addresses that need to be mapped through the IOMMU. For now, I will ignore IOMMU and just assume
 //! the addresses are always physical.
 

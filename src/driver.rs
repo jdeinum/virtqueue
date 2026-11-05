@@ -224,7 +224,7 @@ impl Driver {
     ///
     /// Finally, if the device has a message for us, it will post a chain to the receive virtqueue.
     /// Therefore, we should check the used ring on the receive virtqueue and replace those
-    /// descriptors asap.
+    /// descriptors ASAP.
     ///
     /// Thus, we get the following sequence:
     ///
@@ -233,6 +233,10 @@ impl Driver {
     /// 3. Check the used ring on the transmit virtqueue to see if the device has read any of our messages.
     /// 4. Check the used ring on the receive virtqueue if the device has any messages for us, if
     ///    so, replace the descriptors as soon as possible.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when sending a message to the device fails
     pub fn run(mut self) -> Result<()> {
         loop {
             self.step().context("driver step")?;
@@ -244,12 +248,18 @@ impl Driver {
     /// For now, step will be our basic runtime unit we can build around. Tests can call step in
     /// whatever sequence they want, and if we use DST or fuzzing of some kind, we can use a PRNG to
     /// decide what gets to make progress.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when sending a message to the device fails
     pub fn step(&mut self) -> Result<()> {
         // first we'll send any messages we have for the driver by allocating a new chain for
         // it, and putting the index of the head in available.
         if self.state.rng.random::<u16>() % 10 == 0 {
             debug!("Work to send");
-            self.state.send_message()?;
+            self.state
+                .send_message()
+                .context("send message to device")?;
         }
 
         // next we check the transmit virtqueue to see if any buffers need to be replaced
