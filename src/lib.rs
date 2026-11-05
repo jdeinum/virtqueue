@@ -22,5 +22,11 @@ mod device;
 mod driver;
 mod error;
 mod rings;
-pub mod run;
+mod run;
+mod utils;
 mod virtqueue;
+
+pub use device::Device;
+pub use driver::Driver;
+pub use run::run;
+pub use virtqueue::{SharedVirtQueue, VirtQueue};

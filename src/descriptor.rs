@@ -1,3 +1,6 @@
+/// Marks a descriptor as device-writable, matching `VIRTQ_DESC_F_WRITE` from the spec
+pub const DESC_F_WRITE: u16 = 2;
+
 pub enum DescriptorType {
     Read,
     Write,

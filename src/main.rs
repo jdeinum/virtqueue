@@ -1,5 +1,5 @@
 use tracing::error;
-use virtio::run::run;
+use virtio::run;
 
 fn main() {
     tracing_subscriber::fmt::init();
