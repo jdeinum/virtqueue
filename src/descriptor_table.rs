@@ -1,6 +1,5 @@
 use crate::descriptor::Descriptor;
 use std::ops::{Deref, DerefMut};
-use std::sync::{Arc, Mutex};
 
 pub const DESC_TABLE_SIZE: usize = crate::rings::RING_SIZE;
 
@@ -64,5 +63,3 @@ impl DescriptorTable {
         head
     }
 }
-
-pub type SharedDescriptorTable = Arc<Mutex<DescriptorTable>>;

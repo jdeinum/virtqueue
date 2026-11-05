@@ -1,7 +1,4 @@
-use std::{
-    ops::{Deref, DerefMut},
-    sync::{Arc, Mutex},
-};
+use std::ops::{Deref, DerefMut};
 
 /// The spec requires a power of two for split rings, which is what lets the free-running u16
 /// indices map onto ring slots with `% RING_SIZE` across a wrap.
@@ -54,7 +51,3 @@ impl DerefMut for UsedRing {
         &mut self.0
     }
 }
-
-pub type SharedAvailableRing = Arc<Mutex<AvailableRing>>;
-
-pub type SharedUsedRing = Arc<Mutex<UsedRing>>;

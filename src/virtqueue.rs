@@ -53,7 +53,7 @@ impl VirtQueue {
 
 /// Walks the ring entries between `from` and `to`. The difference is computed with wrapping
 /// arithmetic so this keeps working after the u16 index overflows.
-fn ring_entries<T: Copy>(ring: &[T], from: u16, to: u16) -> impl Iterator<Item = T> + '_ {
+fn ring_entries<T: Copy>(ring: &[T], from: u16, to: u16) -> impl Iterator<Item = T> {
     (0..to.wrapping_sub(from)).map(move |i| ring[usize::from(from.wrapping_add(i)) % RING_SIZE])
 }
 
